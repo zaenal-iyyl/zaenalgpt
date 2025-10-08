@@ -4,12 +4,24 @@ export default function Home() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [model, setModel] = useState("chatgpt");
+
+  const models = [
+    { id: "chatgpt41mini", name: "GPT-4.1 Mini" },
+    { id: "chatgpt", name: "GPT-4.1" },
+    { id: "chatgpto1p", name: "GPT-O1" },
+    { id: "claude", name: "Claude 4 Sonnet" },
+    { id: "gemini", name: "Gemini 2.0" },
+    { id: "mistral", name: "Mistral Large 2" },
+    { id: "grok", name: "Grok 3" },
+  ];
 
   const sendMessage = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
+
     const newMsg = { from: "user", text: input };
-    setMessages([...messages, newMsg]);
+    setMessages((prev) => [...prev, newMsg]);
     setInput("");
     setLoading(true);
 
@@ -17,14 +29,14 @@ export default function Home() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: input }),
+        body: JSON.stringify({ prompt: input, model }),
       });
       const data = await res.json();
       setMessages((prev) => [...prev, { from: "bot", text: data.result }]);
-    } catch (err) {
+    } catch {
       setMessages((prev) => [
         ...prev,
-        { from: "bot", text: "Terjadi kesalahan server." },
+        { from: "bot", text: "⚠️ Gagal memuat respons dari server." },
       ]);
     }
     setLoading(false);
@@ -32,7 +44,17 @@ export default function Home() {
 
   return (
     <div className="container">
-      <h1 className="title">ZaenalGPT</h1>
+      <header>
+        <h1>ZaenalGPT</h1>
+        <select value={model} onChange={(e) => setModel(e.target.value)}>
+          {models.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.name}
+            </option>
+          ))}
+        </select>
+      </header>
+
       <div className="chat-box">
         {messages.map((msg, i) => (
           <div key={i} className={`bubble ${msg.from}`}>
@@ -45,18 +67,20 @@ export default function Home() {
       <form onSubmit={sendMessage} className="input-box">
         <input
           type="text"
-          placeholder="Ketik pesan..."
+          placeholder="Tulis pesan kamu..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
         />
-        <button type="submit">Kirim</button>
+        <button type="submit" disabled={loading}>
+          {loading ? "Mengirim..." : "Kirim"}
+        </button>
       </form>
 
-      <p className="footer">Made by Zaenal</p>
+      <footer>Made by Zaenal</footer>
 
       <style jsx>{`
         .container {
-          background: #0d0d0d;
+          background: #0e0e0e;
           color: #f2f2f2;
           min-height: 100vh;
           display: flex;
@@ -64,65 +88,83 @@ export default function Home() {
           align-items: center;
           justify-content: center;
           padding: 20px;
-          font-family: Arial, sans-serif;
+          font-family: "Inter", sans-serif;
         }
-        .title {
-          font-size: 32px;
-          font-weight: bold;
-          margin-bottom: 20px;
+        header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+          max-width: 700px;
+          margin-bottom: 10px;
+        }
+        h1 {
+          font-size: 1.5rem;
+          font-weight: 600;
+        }
+        select {
+          background: #1c1c1c;
+          color: white;
+          border: 1px solid #333;
+          padding: 8px 12px;
+          border-radius: 8px;
+          cursor: pointer;
         }
         .chat-box {
           background: #1a1a1a;
-          border-radius: 10px;
-          padding: 15px;
+          border-radius: 12px;
+          padding: 20px;
           width: 100%;
-          max-width: 500px;
-          height: 400px;
+          max-width: 700px;
+          height: 480px;
           overflow-y: auto;
           display: flex;
           flex-direction: column;
+          box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
         }
         .bubble {
           max-width: 80%;
-          padding: 10px 15px;
-          border-radius: 12px;
-          margin: 8px 0;
+          padding: 12px 16px;
+          border-radius: 16px;
+          margin: 6px 0;
           word-wrap: break-word;
+          line-height: 1.5;
         }
         .bubble.user {
           background: #0070f3;
-          color: #fff;
+          color: white;
           align-self: flex-end;
         }
         .bubble.bot {
-          background: #333;
+          background: #2b2b2b;
           color: #fff;
           align-self: flex-start;
         }
         .input-box {
           display: flex;
-          margin-top: 15px;
           width: 100%;
-          max-width: 500px;
+          max-width: 700px;
+          margin-top: 15px;
         }
         input {
           flex: 1;
-          padding: 10px;
-          border: none;
-          border-radius: 8px 0 0 8px;
+          background: #1c1c1c;
+          color: white;
+          border: 1px solid #333;
+          border-radius: 10px 0 0 10px;
+          padding: 12px;
           outline: none;
-          background: #222;
-          color: #fff;
         }
         button {
           background: #0070f3;
-          color: #fff;
+          color: white;
           border: none;
-          border-radius: 0 8px 8px 0;
-          padding: 10px 20px;
+          border-radius: 0 10px 10px 0;
+          padding: 12px 20px;
           cursor: pointer;
+          font-weight: 500;
         }
-        .footer {
+        footer {
           margin-top: 20px;
           font-size: 14px;
           opacity: 0.6;

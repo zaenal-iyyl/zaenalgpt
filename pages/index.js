@@ -1,175 +1,79 @@
-import { useState } from "react";
+import Link from "next/link"
 
 export default function Home() {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [model, setModel] = useState("chatgpt");
-
-  const models = [
-    { id: "chatgpt41mini", name: "GPT-4.1 Mini" },
-    { id: "chatgpt", name: "GPT-4.1" },
-    { id: "chatgpto1p", name: "GPT-O1" },
-    { id: "claude", name: "Claude 4 Sonnet" },
-    { id: "gemini", name: "Gemini 2.0" },
-    { id: "mistral", name: "Mistral Large 2" },
-    { id: "grok", name: "Grok 3" },
-  ];
-
-  const sendMessage = async (e) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-
-    const newMsg = { from: "user", text: input };
-    setMessages((prev) => [...prev, newMsg]);
-    setInput("");
-    setLoading(true);
-
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: input, model }),
-      });
-      const data = await res.json();
-      setMessages((prev) => [...prev, { from: "bot", text: data.result }]);
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        { from: "bot", text: "⚠️ Gagal memuat respons dari server." },
-      ]);
-    }
-    setLoading(false);
-  };
-
   return (
-    <div className="container">
-      <header>
-        <h1>ZaenalGPT</h1>
-        <select value={model} onChange={(e) => setModel(e.target.value)}>
-          {models.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
-            </option>
-          ))}
-        </select>
-      </header>
+    <main style={{
+      minHeight: "100vh",
+      background: "radial-gradient(circle at 20% 20%, #111 0%, #000 100%)",
+      color: "#f1f1f1",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      fontFamily: "Inter, sans-serif",
+      textAlign: "center",
+      padding: "2rem",
+      position: "relative",
+      overflow: "hidden"
+    }}>
+      {/* Background mesh */}
+      <div style={{
+        position: "absolute",
+        inset: 0,
+        backgroundImage: "linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(0deg, rgba(255,255,255,0.03) 1px, transparent 1px)",
+        backgroundSize: "40px 40px",
+        zIndex: 0
+      }}></div>
 
-      <div className="chat-box">
-        {messages.map((msg, i) => (
-          <div key={i} className={`bubble ${msg.from}`}>
-            {msg.text}
-          </div>
-        ))}
-        {loading && <div className="bubble bot">...</div>}
+      <div style={{ zIndex: 1 }}>
+        <h1 style={{ fontSize: "2.8rem", fontWeight: "700", marginBottom: "1rem" }}>
+          ZaenalGPT
+        </h1>
+        <p style={{ maxWidth: "600px", lineHeight: "1.7", fontSize: "1rem", opacity: 0.9 }}>
+          ZaenalGPT adalah asisten AI modern yang dikembangkan menggunakan sistem scraping cerdas. 
+          Dirancang untuk menjawab pertanyaan secara cepat, alami, dan tanpa biaya tambahan. 
+          Cocok untuk obrolan santai, eksplorasi ide, hingga membantu produktivitas harian.
+        </p>
+
+        <section style={{ marginTop: "2rem", textAlign: "left", maxWidth: "600px", marginInline: "auto" }}>
+          <h2 style={{ fontSize: "1.3rem", marginBottom: "0.8rem" }}>Fitur Unggulan</h2>
+          <ul style={{ lineHeight: "1.8", opacity: 0.9 }}>
+            <li>Tanpa API key & tanpa database</li>
+            <li>Gratis 100% dan siap digunakan</li>
+            <li>Respon cepat dan ringan</li>
+            <li>Desain minimalis profesional</li>
+            <li>Dapat di-deploy langsung di Vercel</li>
+          </ul>
+        </section>
+
+        <div style={{ marginTop: "2rem", display: "flex", gap: "1rem", justifyContent: "center" }}>
+          <Link href="/chat">
+            <button style={{
+              padding: "0.8rem 1.6rem",
+              backgroundColor: "#1a1a1a",
+              border: "1px solid #333",
+              borderRadius: "8px",
+              color: "#fff",
+              fontWeight: "500",
+              cursor: "pointer",
+              transition: "all 0.3s"
+            }}>Buka Chat</button>
+          </Link>
+
+          <a href="https://github.com/zaenal-iyyl/zaenalgpt" target="_blank" rel="noopener noreferrer">
+            <button style={{
+              padding: "0.8rem 1.6rem",
+              backgroundColor: "#111",
+              border: "1px solid #333",
+              borderRadius: "8px",
+              color: "#ccc",
+              fontWeight: "500",
+              cursor: "pointer",
+              transition: "all 0.3s"
+            }}>Source Code</button>
+          </a>
+        </div>
       </div>
-
-      <form onSubmit={sendMessage} className="input-box">
-        <input
-          type="text"
-          placeholder="Tulis pesan kamu..."
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-        />
-        <button type="submit" disabled={loading}>
-          {loading ? "Mengirim..." : "Kirim"}
-        </button>
-      </form>
-
-      <footer>Made by Zaenal</footer>
-
-      <style jsx>{`
-        .container {
-          background: #0e0e0e;
-          color: #f2f2f2;
-          min-height: 100vh;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          padding: 20px;
-          font-family: "Inter", sans-serif;
-        }
-        header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          width: 100%;
-          max-width: 700px;
-          margin-bottom: 10px;
-        }
-        h1 {
-          font-size: 1.5rem;
-          font-weight: 600;
-        }
-        select {
-          background: #1c1c1c;
-          color: white;
-          border: 1px solid #333;
-          padding: 8px 12px;
-          border-radius: 8px;
-          cursor: pointer;
-        }
-        .chat-box {
-          background: #1a1a1a;
-          border-radius: 12px;
-          padding: 20px;
-          width: 100%;
-          max-width: 700px;
-          height: 480px;
-          overflow-y: auto;
-          display: flex;
-          flex-direction: column;
-          box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
-        }
-        .bubble {
-          max-width: 80%;
-          padding: 12px 16px;
-          border-radius: 16px;
-          margin: 6px 0;
-          word-wrap: break-word;
-          line-height: 1.5;
-        }
-        .bubble.user {
-          background: #0070f3;
-          color: white;
-          align-self: flex-end;
-        }
-        .bubble.bot {
-          background: #2b2b2b;
-          color: #fff;
-          align-self: flex-start;
-        }
-        .input-box {
-          display: flex;
-          width: 100%;
-          max-width: 700px;
-          margin-top: 15px;
-        }
-        input {
-          flex: 1;
-          background: #1c1c1c;
-          color: white;
-          border: 1px solid #333;
-          border-radius: 10px 0 0 10px;
-          padding: 12px;
-          outline: none;
-        }
-        button {
-          background: #0070f3;
-          color: white;
-          border: none;
-          border-radius: 0 10px 10px 0;
-          padding: 12px 20px;
-          cursor: pointer;
-          font-weight: 500;
-        }
-        footer {
-          margin-top: 20px;
-          font-size: 14px;
-          opacity: 0.6;
-        }
-      `}</style>
-    </div>
-  );
+    </main>
+  )
 }

@@ -1,58 +1,58 @@
 import axios from "axios";
+import FormData from "form-data";
 
 export default async function handler(req, res) {
-  if (req.method !== "POST")
-    return res.status(405).json({ error: "Method Not Allowed" });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  const { message } = req.body;
+
+  if (!message) {
+    return res.status(400).json({ error: "Prompt tidak boleh kosong" });
+  }
 
   try {
-    const { prompt } = req.body;
-    if (!prompt)
-      return res.status(400).json({ error: "Prompt tidak boleh kosong" });
+    const form = new FormData();
+    form.append("action", "generate_chat");
+    form.append(
+      "query",
+      JSON.stringify([
+        {
+          role: "system",
+          content: "You are ZaenalGPT, a helpful and informative AI assistant."
+        },
+        {
+          role: "user",
+          content: message
+        }
+      ])
+    );
+    form.append("link", "writecream.com");
 
-    const messages = [
+    const response = await axios.post(
+      "https://www.writecream.com/wp-admin/admin-ajax.php",
+      form,
       {
-        role: "system",
-        content:
-          "Kamu adalah ZaenalGPT, AI asisten cerdas yang pintar, elegan, dan profesional. Gunakan bahasa Indonesia yang alami, sopan tapi santai. Jangan terlalu kaku, dan bantu user dengan cepat dan jelas.",
-      },
-      { role: "user", content: prompt },
-    ];
+        headers: {
+          ...form.getHeaders()
+        },
+        timeout: 60000
+      }
+    );
 
-    const params = {
-      query: JSON.stringify(messages),
-      link: "writecream.com",
-    };
+    const output = response?.data?.data?.response_content;
 
-    const url =
-      "https://8pe3nv3qha.execute-api.us-east-1.amazonaws.com/default/llm_chat?" +
-      new URLSearchParams(params);
-
-    const headers = { accept: "*/*" };
-
-    const response = await axios.get(url, { headers });
-
-    let finalText = "";
-    if (typeof response.data === "string") {
-      finalText = response.data;
-    } else if (response.data?.response_content) {
-      finalText = response.data.response_content;
-    } else if (response.data?.message) {
-      finalText = response.data.message;
-    } else {
-      finalText = JSON.stringify(response.data);
+    if (!output) {
+      return res.status(500).json({ error: "Gagal mengambil respon AI" });
     }
 
-    return res.status(200).json({
-      status: true,
-      model: "ZaenalGPT",
-      response: finalText.trim(),
+    res.status(200).json({
+      response: output.trim()
     });
-  } catch (error) {
-    const errText =
-      error.response?.data?.message || error.message || "Gagal memproses permintaan.";
-    return res.status(500).json({
-      status: false,
-      response: "error: " + errText,
+  } catch (err) {
+    res.status(500).json({
+      error: "Terjadi kesalahan server"
     });
   }
 }

@@ -1,17 +1,15 @@
-import { useState, createContext, useContext } from "react";
+import { useState, createContext } from "react";
 import "../styles/globals.css";
 
-const ThemeContext = createContext();
-
-export const useTheme = () => useContext(ThemeContext);
+export const ThemeContext = createContext();
 
 export default function App({ Component, pageProps }) {
-  const [dark, setDark] = useState(true);
-  const toggleTheme = () => setDark(!dark);
+  const [theme, setTheme] = useState("dark");
+  const toggle = () => setTheme(theme === "dark" ? "light" : "dark");
 
   return (
-    <ThemeContext.Provider value={{ dark, toggleTheme }}>
-      <div className={dark ? "dark" : "light"}>
+    <ThemeContext.Provider value={{ theme, toggle }}>
+      <div className={theme}>
         <Component {...pageProps} />
       </div>
     </ThemeContext.Provider>
